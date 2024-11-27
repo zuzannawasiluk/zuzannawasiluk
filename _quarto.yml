@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Zuzanna Wasiluk"
+  navbar:
+    right:
+      - href: index.qmd
+        text: Home
+      - econ.qmd
+      - mini_project_first.qmd
+      - mini_project_penguin.qmd
+      - mini_project_cinderella.qmd
+
+format:
+  html:
+    theme: style.scss 
+    toc: true
+    page-layout: full

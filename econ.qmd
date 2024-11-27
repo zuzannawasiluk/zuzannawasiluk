@@ -1,0 +1,19 @@
+---
+title: "Economics"
+---
+
+### Course Title: Comparative Analysis of Legal Systems<br>
+
+Submitted: May 21, 2024<br> Instructor: Professor Colin Harris<br>
+
+Title: The Cultural Impact of Joining the European Union on 2004 and 2007 Expansion Countries<br>
+
+Abstract:<br>
+
+Two of the most historically significant expansions in the European Union (EU) occurred in 2004 and 2007 with mostly former post-communist countries and transition economies. These EU enlargements unified the West and East after a period of Eastern isolation from the rest of Europe. Since then, the EU has expanded its influence outside of the purely economic into the social, cultural, and political. With this shift and the goal to curate a national identity for Europe, do member states experience converge to the values of the EU founding members? Using a staggered difference-in-difference model, I compared the average value of 2004/2007 expansion countries to the EU founding member average value before and after treatment (membership into the EU). This study concludes that convergence only occurs for tolerance toward racial minorities and immigrants.<br>
+
+JEL codes: D91, A13, Z13<br>
+
+Keywords: social convergence, social divergence, the European Union, 2004 member states, 2007 member states, EU founding members<br>
+
+## [Download the PDF](media/eu_paper.pdf)

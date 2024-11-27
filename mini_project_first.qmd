@@ -1,0 +1,281 @@
+---
+title: "Mini Project 1"
+---
+
+I produced four choropleth maps illustrating two different characteristics – one numeric and one categorical – that have been measured for each US state. The numerical data was on obesity data and the categorical data was created from a dataset on the number of bikeshare systems. This data is displayed in both static and interactive forms.
+
+```{r}
+#| message: false
+#| warning: false
+
+# Loading packages 
+
+library(tidyverse)
+library(viridis)
+library(maps)
+library(mdsr)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# Loading and renaming my datasets
+
+library(readr)
+nutrition_physical_data <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System (2).csv")
+
+bikeshare <- read_csv("Bikeshare_Scooter_Systems_20240919.csv") |>
+  rename(state = STATE,
+         city = CITY,
+         citystate = CITYSTATE) |>
+  select(state, city, citystate)
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# New saved data
+obesity_data <- nutrition_physical_data |>
+  #Renaming variable to make it easier to work with
+  rename(age = `Age(years)`) |>
+  #Filtering for a few relevant variables 
+  filter(YearStart == 2020,
+         Question == "Percent of adults aged 18 years and older who have obesity", 
+         !is.na(Data_Value),
+         age == "18 - 24"
+  ) |>
+  #Selecting specific columns
+  select(YearStart,
+         LocationDesc, 
+         Question, 
+         Data_Value, 
+         age,
+         LocationAbbr
+  ) |>
+  #Creating a new column with state names that are lowercase 
+  mutate(state = str_to_lower(LocationDesc)) |>
+  select(!LocationDesc) |>
+  #Filter out 
+  filter(!state == "guam" | !state == "puerto rico")
+
+#Bring this dataset in so that it can draw points to create states
+us_states <- map_data("state")
+head(us_states)
+```
+
+```{r}
+obesity_data |>
+  #Join two datasets with different names for state names (one draws map and the other has numeric variable)
+  right_join(us_states, by = c("state" = "region")) |>
+  rename(region = state) |>
+  #Plotting to create states 
+  ggplot(mapping = aes(x = long, y = lat,
+                          group = group)
+  ) + 
+  #Coloring certain states based on the values in Data_Value
+  geom_polygon(aes(fill = Data_Value), color = "black") +
+  scale_fill_viridis(option = "magma") +
+  labs(
+    title = "Percent of Adults Aged 18 years and Older with Obesity,
+    State-Level",
+    subtitle = "Data obtained from the U.S. Department of Health & Human Services' 
+    Nutrition, Physical Activity, and Obesity - Behavioral Risk Factor Surveillance System", 
+    fill = "Percentage of Population",
+    caption = "Created by Zuzanna Wasiluk for Mini-Project 1"
+    ) +
+  #Clean white background in the back of the graph
+  coord_map() + 
+  theme_void() 
+```
+
+Description: This plot describes the percentage of adults who are obese by state as opposed to total population. Generally, most of the states were either magenta or dark purple indicating that they fall between 15-20. Therefore, their percentage of the adult population who have obesity was on the lower half of the scale. There is a concerning pattern of orange and yellow shades in the South region, representing a higher percentage of obese adults in this area than in the rest of the United States. Furthermore, the lightest states are all next to each other which prompts more elaborate investigation into why AR, MS, and AL have such an alarming trend of adult obesity.
+
+The link to the website where I found this data can be found here:[U.S. Department of Health & Human Services](https://catalog.data.gov/dataset/nutrition-physical-activity-and-obesity-behavioral-risk-factor-surveillance-system).
+
+Alt_Text: This is a choropleth plot of the United States (48 states minus Hawaii and Alaska) that visualizes percentages of adult obesity in each state. It has a continuous scale alongside the map graph with a range of 11 to 27, the scale is labeled as "Percentage of Population." The variables are state and percentage of adult population with obesity. The appearance of the colors for most of the states suggests that the total adult population who have obesity floats around 18 percent (the middle of the scale) for the United States. However, the light yellow and orange color in the Southern region tells us that the percentage of adult obesity is higher in the South.
+
+```{r}
+#| message: false
+#| warning: false
+
+#Create categorical variable
+bikeshare_state <- bikeshare |>
+  #Group by state to find the number of cities in each state with a bikeshare scooter system
+  group_by(state) |>
+  summarise(Count = n()) |>
+  #Mutate to create a column that takes numeric information and groups it based on which conditions it ultimately meets
+  mutate(Amount = case_when(
+    Count >= 130 ~ "Very High",
+    Count >= 100 ~ "High",
+    Count >= 80 ~ "Moderate",
+    Count >= 40 ~ "Low Moderate",
+    Count >= 0 ~ "Low"))
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+#Group by to have a dataset to merge with the other one that contains the written out state name instead of abbreviation 
+nutrition <- nutrition_physical_data |>
+  group_by(LocationDesc, LocationAbbr) |>
+  summarize(n = n())
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+#Merge the dataset to have bstates with the lowercase versions of the state names 
+bstates <- bikeshare_state |>
+  right_join(nutrition, by = c("state" = "LocationAbbr")) |>
+  mutate(region = str_to_lower(LocationDesc)) |>
+  select(!n)
+```
+
+```{r}
+#Join with the dataset that contains information for drawing the states in the plot using the geometry column
+bstates |>
+  right_join(us_states, by = "region")|>
+  #Relevel variables so that they appear in the appropriate order on the plot
+  mutate(Amount = fct_relevel(Amount, "Very High", "High", "Moderate", "Low Moderate", "Low")) |>
+  ggplot(mapping = aes(x = long, y = lat,
+                          group = group)) + 
+  #Shade the state shapes by their value in the Amount variable 
+  geom_polygon(aes(fill = Amount), color = "black", linewidth = 0.2) +
+  #Clean background
+  coord_map() + 
+  theme_void() +  
+  scale_fill_viridis_d(option = "magma") + 
+  labs(
+    title = "Classification of Bikeshare Scooter Systems in Each 
+    State in the United States",
+    subtitle = "Data obtained from the U.S. Department of Transportation
+    from their Bureau of Transportation Statistics (BTS)",
+    fill = "Classification",
+    caption = "Created by Zuzanna Wasiluk for Mini-Project 1"
+  )
+```
+
+The plot above describes the "classification" of bikeshare scooter systems in US states. To provide context for those less familiar with bikeshare scooter systems, they are a category of transportation that includes small vehicles that are typically found in cities. We find that most US states have a low number of bikeshare scooter systems except states with multiple major US cities (Florida, California, Texas). From the plot before, we see that the states with the highest obesity percentage also have the lowest classification of bikeshare scooter systems. However, this lack does not provide an explanation for the obesity rates because many US states with lower obesity rates also have a low number of bikeshare scooter systems.
+
+The data can be found under this link [Bureau of Transportation Statistics' website](https://data.bts.gov/dataset/Bikeshare-Scooter-Systems/ajr2-wpfp/about_data).
+
+```{r}
+#| message: false
+#| warning: false
+
+library(leaflet)
+library(sf)
+library(htmltools)
+library(glue)
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# Create density bins 
+weight_int_state <- obesity_data |>
+  mutate(density = cut(Data_Value, n = 6,
+          breaks = c(0, 5, 10, 15, 20, 25, 30))) |>
+  filter(!(state %in% c("alaska", "hawaii", "puerto rico", "national")))
+
+#Create labels by combining multiple strings into one string 
+weight_int_state <- weight_int_state |>
+  mutate(labels = str_c(state, ": ", Data_Value, " % of adult population"))
+
+labels <- lapply(weight_int_state$labels, HTML)
+
+#Create a new saved dataset
+leaflet_data <- weight_int_state |>
+  select(density, state, labels, Data_Value)
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+states <- read_sf("https://rstudio.github.io/leaflet/json/us-states.geojson")  
+class(states) 
+#Create a new variable with lowercase letters
+n_states <- states |>
+  mutate(lowname = str_to_lower(name))
+
+nb_states <- n_states |>
+  left_join(leaflet_data, by = c("lowname" = "state"))
+#Define bins and palette for leaflet operations
+bins <- c(0, 5, 10, 15, 20, 25, 30)
+pal <- colorBin("YlOrRd", domain = nb_states$Data_Value, bins = bins)
+```
+
+```{r}
+#Leaflet plot
+leaflet(nb_states) %>%
+  setView(-96, 37.8, 4) %>%
+  addTiles() %>%
+  addPolygons(
+    fillColor = ~pal(Data_Value),
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlightOptions = highlightOptions(
+      weight = 5,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto")) %>%
+  addLegend(pal = pal, values = ~Data_Value, opacity = 0.7, title = NULL,
+    position = "bottomright")
+```
+
+Categorical interactive plot
+
+```{r}
+cat_states <- nb_states |>
+  left_join(bstates, by =c("lowname" = "region")) |>
+  #Putting multiple strings in one string using str_c
+mutate(labels = str_c(state, ": ", Amount, " number of bikeshare systems")) |>
+  mutate(Amount = as.factor(Amount))
+
+labels <- lapply(cat_states$labels, HTML)
+#Define levels and factor palette
+levels(cat_states$Amount)
+factpal <- colorFactor("viridis",
+                       levels(cat_states$Amount))
+#Leaflet plot
+leaflet(cat_states) |>
+  setView(-96, 37.8, 4) |>
+  addTiles() |>
+  addPolygons(
+    weight = 2,
+    opacity = 1,
+    color = "black",
+    fillColor = ~ factpal(cat_states$Amount),
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlightOptions = highlightOptions(
+      weight = 5,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto")) |>
+  addLegend(pal = factpal, values = ~cat_states$Amount, 
+            opacity = 0.7, title = NULL, position = "bottomright")
+```

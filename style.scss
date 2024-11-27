@@ -1,0 +1,25 @@
+/*-- scss:defaults --*/
+
+// Colors
+$dark: #412;
+$raspberry: #914;
+$teal: #199;
+$cream: #FDFBF7;
+$purple: #9158A2;
+
+// Base document colors
+$navbar-bg: $raspberry; // navbar
+$body-bg: $cream; // page background 
+$navbar-hl: $teal; // highlight color when hovering over navbar links
+$body-color: $dark; // page text 
+
+$code-bg: $cream; // inline code background color
+$code-color: $dark; // inline code text color
+
+body {
+    font-size: 10px;
+}
+
+p {
+    font-size: 0.9em; // Paragraph text size
+}

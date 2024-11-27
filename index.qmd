@@ -1,0 +1,28 @@
+---
+title: "Zuzanna Wasiluk"
+about:
+  template: broadside
+  image: media/photo.jpg
+  image-shape: rectangle
+  links:
+    - icon: linkedin
+      href: https://www.linkedin.com/in/zuzannawasiluk/
+    - icon: github
+      href: https://github.com/zuzannawasiluk
+    - icon: envelope
+      href: mailto:wasilu1@stolaf.edu
+    - text: CV
+      href: https://docs.google.com/document/d/1vxmNH4XF4anVQyG1O5ykDnpuXMPdjqAXqHYAg0hYAXo/edit?usp=sharing
+---
+
+### Education
+
+Bachelor of Arts in Economics<br> Statistics and Data Science concentration<br> Expected Graduation Date May 2025 \| Saint Olaf College<br>
+
+### Current Courses
+
+Econometrics: Time Series and Forecasting<br> Data Science 2<br> Statistics 2<br> Politics and Development
+
+### Membership Organizations
+
+Girls Write Now<br> Rewriting the Code<br> Women in Economics at St. Olaf College<br> International Association of Feminist Economics
